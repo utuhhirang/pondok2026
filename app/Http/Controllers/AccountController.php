@@ -12,6 +12,10 @@ class AccountController extends Controller
 {
     public function index()
     {
+        if (!jadwal_buka()) {
+        return response()->view('admin.jadwal.tutup');
+        }
+        
         $user = UserLegacy::find(session('auth_user_id'));
         
         if ($user && $user->active != 0) {
@@ -82,12 +86,12 @@ class AccountController extends Controller
 
         if ($request->hasFile('photos')) {
             if ($user->photos) {
-                \Illuminate\Support\Facades\Storage::disk('local')->delete('photos/' . $user->photos);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete('photos/' . $user->photos);
             }
 
             $file = $request->file('photos');
             $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('photos', $filename, 'local');
+            $file->storeAs('photos', $filename, 'public');
 
             $user->photos = $filename;
             $user->save();

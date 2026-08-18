@@ -16,7 +16,13 @@ class TrackingController extends Controller
             ->with(['dokumen', 'pengambilan'])
             ->latest()
             ->get();
-        $isPedes = false;        
+        $isPedes = false;
+
+        // Fungsi asli: Cek Jadwal Buka
+        if (!jadwal_buka()) {
+            return response()->view('admin.jadwal.tutup');
+        }
+        
         // Fungsi asli: Reset notifikasi
         session(['unread_count' => 0]);
 

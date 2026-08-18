@@ -13,6 +13,9 @@ class LayananController extends Controller
      */
     public function index()
     {
+        if (!jadwal_buka()) {
+        return response()->view('admin.jadwal.tutup');
+        }
         return view('layanan'); // Mengembalikan view layanan.blade.php
     }
 }
