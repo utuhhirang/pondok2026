@@ -89,12 +89,12 @@ class ProfileController extends Controller
 
         if ($request->hasFile('photos')) {
             if ($user->photos) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete('photos/' . $user->photos);
+                \Illuminate\Support\Facades\Storage::disk('local')->delete('photos/' . $user->photos);
             }
 
             $file = $request->file('photos');
             $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('photos', $filename, 'public');
+            $file->storeAs('photos', $filename, 'local');
 
             $user->update(['photos' => $filename]);
         }
