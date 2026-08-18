@@ -7,15 +7,9 @@
     <div class="bg-white rounded-xl shadow-sm p-5 mb-6 border border-gray-100">
         <div class="flex items-center">
             <div class="relative inline-block mr-4">
-                @if ($user->photos)
-                    <img src="{{ asset('storage/photos/' . $user->photos) }}" 
-                        alt="Foto Profil" 
-                        class="rounded-full w-16 h-16 object-cover ring-2 ring-gray-200">
-                @else
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&size=64&background=random" 
-                        alt="Avatar Default" 
-                        class="rounded-full w-16 h-16 ring-2 ring-gray-200">
-                @endif
+                <img src="{{ $user->avatar_url }}" 
+                    alt="Foto Profil" 
+                    class="rounded-full w-16 h-16 object-cover ring-2 ring-gray-200">
                 <form action="{{ route('account.updateAvatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form-public">
                     @csrf
                     <input type="file" name="photos" id="avatar-input-public" class="hidden" accept="image/*">

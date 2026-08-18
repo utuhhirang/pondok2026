@@ -176,22 +176,82 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-// === 4. ROUTE DOKUMEN (SELALU BISA DIAKSES) ===
+// === 4. ROUTE DOKUMEN (DIAMANKAN) ===
 Route::get('/dokumen/{path}', function ($path) {
-    $filePath = storage_path('app/public/' . $path);
-    if (!file_exists($filePath)) {
-        abort(404);
+    // 1. Cek folder publik (dok_formulir)
+    $isPublicForm = str_starts_with($path, 'dok_formulir/');
+    
+    if (!$isPublicForm) {
+        // Wajib login untuk selain formulir publik
+        if (!auth()->check()) {
+            abort(403, 'Silakan login terlebih dahulu untuk mengakses file ini.');
+        }
+        
+        $user = auth()->user();
+        $userId = $user->id;
+        $roleId = $user->role_id;
+        $hasAccess = false;
+        
+        // Admin (1), Verifikator (3), dan Operator (4) punya akses penuh
+        if (in_array($roleId, [1, 3, 4])) {
+            $hasAccess = true;
+        } else {
+            // User biasa (2)
+            if (str_starts_with($path, 'photos/')) {
+                // Semua user login bisa melihat foto profil / avatar
+                $hasAccess = true;
+            } else {
+                // Cari relasi transaksi untuk berkas persyaratan (UserSyarat)
+                $userSyarat = \App\Models\UserSyarat::where('file', $path)->first();
+                if ($userSyarat) {
+                    $transaksi = \App\Models\Transaksi::where('id_trx', $userSyarat->id_trx)->first();
+                    if ($transaksi && $transaksi->id_user == $userId) {
+                        $hasAccess = true;
+                    }
+                }
+                
+                // Cari relasi transaksi untuk dokumen hasil (UserDokumen)
+                if (!$hasAccess) {
+                    $userDokumen = \App\Models\UserDokumen::where('file_path', $path)->first();
+                    if ($userDokumen) {
+                        $transaksi = \App\Models\Transaksi::where('id_trx', $userDokumen->id_trx)->first();
+                        if ($transaksi && $transaksi->id_user == $userId) {
+                            $hasAccess = true;
+                        }
+                    }
+                }
+                
+                // Cari relasi transaksi langsung (Selfie & Signature)
+                if (!$hasAccess) {
+                    $transaksi = \App\Models\Transaksi::where('selfie_path', $path)
+                        ->orWhere('signature_path', $path)
+                        ->first();
+                    if ($transaksi && $transaksi->id_user == $userId) {
+                        $hasAccess = true;
+                    }
+                }
+            }
+        }
+        
+        if (!$hasAccess) {
+            abort(403, 'Anda tidak memiliki hak akses untuk dokumen ini.');
+        }
     }
-    $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-    if (strtolower($extension) !== 'pdf') {
-        abort(403, 'Hanya file PDF yang diperbolehkan.');
+
+    $filePath = storage_path('app/private/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404, 'File tidak ditemukan.');
     }
     
-    // Tentukan disposisi konten: 'attachment' jika parameter 'download' dikirim, jika tidak 'inline'
+    $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+    $allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'gif'];
+    if (!in_array($extension, $allowedExtensions)) {
+        abort(403, 'Format file tidak didukung.');
+    }
+    
     $disposition = request()->has('download') ? 'attachment' : 'inline';
     
     return response()->file($filePath, [
-        'Content-Type' => 'application/pdf',
         'Content-Disposition' => $disposition . '; filename="' . basename($filePath) . '"'
     ]);
 })->where('path', '.*')->name('dokumen.show');
