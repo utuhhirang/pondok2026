@@ -10,6 +10,13 @@ class JadwalController extends Controller
 {
     public function index()
     {
+        // Self-healing: Tambah kolom pesan_tutup jika belum ada
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('jadwals', 'pesan_tutup')) {
+            \Illuminate\Support\Facades\Schema::table('jadwals', function ($table) {
+                $table->text('pesan_tutup')->nullable();
+            });
+        }
+
         $jadwal = Jadwal::orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')")->get();
         return view('admin.jadwal.index', compact('jadwal')); // <-- Ini kunci utamanya
     }
@@ -25,10 +32,16 @@ class JadwalController extends Controller
         $request->validate([
             'jam_buka' => 'required|date_format:H:i',
             'jam_tutup' => 'required|date_format:H:i|after:jam_buka',
+            'pesan_tutup' => 'nullable|string',
         ]);
 
         $jadwal = Jadwal::findOrFail($id);
-        $jadwal->update($request->only(['jam_buka', 'jam_tutup']));
+        $jadwal->update([
+            'jam_buka' => $request->jam_buka,
+            'jam_tutup' => $request->jam_tutup,
+            'aktif' => $request->has('aktif') ? true : false,
+            'pesan_tutup' => $request->pesan_tutup,
+        ]);
 
         return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
     }

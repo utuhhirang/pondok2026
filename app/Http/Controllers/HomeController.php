@@ -12,17 +12,19 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Cek apakah jadwal tutup
-        // $hariIni = Carbon::now()->isoFormat('dddd');
-        // $jadwal = Jadwal::where('hari', $hariIni)->where('aktif', true)->first();
-        // $jamSekarang = Carbon::now()->format('H:i');
+        // Cek status buka/tutup pelayanan
+        Carbon::setLocale('id');
+        $hariIni = Carbon::now()->isoFormat('dddd');
+        $jadwalHariIni = Jadwal::where('hari', $hariIni)->first();
 
-        // $buka = $jadwal && $jamSekarang >= $jadwal->jam_buka && $jamSekarang < $jadwal->jam_tutup;
+        $isClosed = !jadwal_buka();
+        $pesanTutup = '';
 
-        // // Jika jadwal tutup, tampilkan halaman tutup
-        // if (!$buka) {
-        //     return response()->view('admin.jadwal.tutup');
-        // }
+        if ($isClosed) {
+            $pesanTutup = ($jadwalHariIni && !empty($jadwalHariIni->pesan_tutup))
+                ? $jadwalHariIni->pesan_tutup
+                : 'Mohon maaf saat ini kami sedang di luar jam layanan, namun Anda tetap dapat melakukan pengajuan layanan.';
+        }
         
         if (Auth::check()) {
             // Hitung jumlah transaksi yang belum selesai
@@ -40,6 +42,6 @@ class HomeController extends Controller
         \App\Http\Controllers\Admin\SlideController::ensureSlidesTableExists();
         $slides = \App\Models\Slide::where('aktif', 'Y')->orderBy('id', 'asc')->get();
 
-        return view('home', compact('slides'));
+        return view('home', compact('slides', 'isClosed', 'pesanTutup'));
     }
 }

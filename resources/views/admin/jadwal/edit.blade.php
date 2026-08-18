@@ -35,6 +35,12 @@
                             </div>
                         </div>
 
+                        <div class="form-group mt-3">
+                            <label for="pesan_tutup">Pesan Kustom Saat Tutup</label>
+                            <textarea name="pesan_tutup" id="pesan_tutup" class="form-control" rows="3" placeholder="Contoh: Mohon maaf, jam pelayanan hari ini telah tutup. Silakan ajukan esok hari.">{{ old('pesan_tutup', $jadwal->pesan_tutup) }}</textarea>
+                            <small class="form-text text-muted">Akan ditampilkan sebagai popup di halaman Beranda pemohon jika hari ini tidak aktif atau waktu sekarang berada di luar jam operasional.</small>
+                        </div>
+
                         <div class="form-group mt-4">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Simpan Perubahan

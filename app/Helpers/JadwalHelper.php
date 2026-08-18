@@ -6,7 +6,7 @@ use Carbon\Carbon;
 if (!function_exists('jadwal_buka')) {
     function jadwal_buka()
     {
-        $user = isset(auth()->user) ? auth()->user : null;
+        $user = auth()->user();
         // Admin dan operator selalu bisa akses
         if ($user && in_array($user->role_id, [1, 4])) {
             return true;

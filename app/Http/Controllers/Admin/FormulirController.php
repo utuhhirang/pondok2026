@@ -50,13 +50,13 @@ class FormulirController extends Controller
 
         $data = $request->only(['jenis_formulir', 'keterangan', 'aktif']);
 
-        // ✅ Upload ke folder: storage/app/public/dok_formulir
+        // ✅ Upload ke folder: storage/app/private/dok_formulir
         $file = $request->file('dokumen');
         $ext = $file->getClientOriginalExtension();
         $name = Str::slug($request->jenis_formulir) . '_' . time() . '.' . $ext;
 
-        // Simpan via disk 'public' → folder 'dok_formulir'
-        $file->storeAs('dok_formulir', $name, 'public');
+        // Simpan via disk 'local' → folder 'dok_formulir'
+        $file->storeAs('dok_formulir', $name, 'local');
         $data['dokumen'] = $name;
 
         Formulir::create($data);
@@ -92,13 +92,13 @@ class FormulirController extends Controller
         if ($request->hasFile('dokumen')) {
             // Hapus file lama
             if ($formulir->dokumen) {
-                Storage::disk('public')->delete('dok_formulir/' . $formulir->dokumen);
+                Storage::disk('local')->delete('dok_formulir/' . $formulir->dokumen);
             }
 
             $file = $request->file('dokumen');
             $ext = $file->getClientOriginalExtension();
             $name = Str::slug($request->jenis_formulir) . '_' . time() . '.' . $ext;
-            $file->storeAs('dok_formulir', $name, 'public');
+            $file->storeAs('dok_formulir', $name, 'local');
             $data['dokumen'] = $name;
         }
 
@@ -115,7 +115,7 @@ class FormulirController extends Controller
     public function destroy(Formulir $formulir)
     {
         if ($formulir->dokumen) {
-            Storage::disk('public')->delete('dok_formulir/' . $formulir->dokumen);
+            Storage::disk('local')->delete('dok_formulir/' . $formulir->dokumen);
         }
 
         $formulir->delete();

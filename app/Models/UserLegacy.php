@@ -20,4 +20,15 @@ class UserLegacy extends Model implements Authenticatable
         'remember_code',
     ];
 
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->photos) {
+            if (str_starts_with($this->photos, 'photos/')) {
+                return route('dokumen.show', ['path' => $this->photos]);
+            }
+            return route('dokumen.show', ['path' => 'photos/' . $this->photos]);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
 }

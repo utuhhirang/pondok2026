@@ -1060,10 +1060,10 @@ document.addEventListener('alpine:init', () => {
         
         @if(!$isSelfie && !$isSignature)
             this.formData.existing_files.push("{{ $file->file }}");
-            this.previews.file.push("{{ asset('storage/' . $file->file) }}");
+            this.previews.file.push("{{ route('dokumen.show', $file->file) }}");
             this.formData.file.push(new File([""], "{{ basename($file->file) }}", { type: "image/jpeg" }));
         @elseif($isSelfie && !isset($selfieLoaded))
-            const selfieUrl = "{{ asset('storage/' . $file->file) }}";
+            const selfieUrl = "{{ route('dokumen.show', $file->file) }}";
             this.previews.selfie = selfieUrl;
             this.formData.file_selfie = selfieUrl;
             this.$nextTick(() => {
@@ -1074,7 +1074,7 @@ document.addEventListener('alpine:init', () => {
             });
             @php $selfieLoaded = true; @endphp
         @elseif($isSignature && !isset($sigLoaded))
-            const sigUrl = "{{ asset('storage/' . $file->file) }}";
+            const sigUrl = "{{ route('dokumen.show', $file->file) }}";
             this.formData.signature = sigUrl;
             this.$nextTick(() => {
                 this.loadSignatureFromUrl(sigUrl);
