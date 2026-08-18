@@ -311,7 +311,8 @@
                         <div class="mt-2">
                             <p class="text-sm text-gray-700 font-medium">
                                 Apakah Anda yakin dokumen sudah sesuai?<br>
-                                Dokumen Anda akan dikirim via Whatsapp/Email.
+                                Dokumen Anda bisa diunduh di tombol Download jika file berformat PDF.
+                                Jika file fisik (KTP/KIA) akan dikirim/diambil sesuai pilihan pengajuan Anda.
                             </p>
                         </div>
                     </div>
