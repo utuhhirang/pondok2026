@@ -13,7 +13,8 @@ class Jadwal extends Model
         'hari',
         'jam_buka',
         'jam_tutup',
-        'aktif'
+        'aktif',
+        'pesan_tutup'
     ];
 
     // Format jam buka/tutup

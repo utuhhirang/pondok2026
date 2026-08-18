@@ -385,6 +385,29 @@
 
 @push('scripts')
 
+@if(isset($isClosed) && $isClosed)
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!sessionStorage.getItem('closed_schedule_alert_shown')) {
+            Swal.fire({
+                title: 'Informasi Layanan',
+                text: {!! json_encode($pesanTutup) !!},
+                icon: 'info',
+                confirmButtonText: 'Saya Mengerti',
+                confirmButtonColor: '#3b82f6',
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                }
+            });
+            sessionStorage.setItem('closed_schedule_alert_shown', 'true');
+        }
+    });
+</script>
+@endif
+
 @if(session('success'))
 <script>
     Swal.fire({

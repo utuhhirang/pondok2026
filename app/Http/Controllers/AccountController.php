@@ -12,10 +12,6 @@ class AccountController extends Controller
 {
     public function index()
     {
-        if (!jadwal_buka()) {
-        return response()->view('admin.jadwal.tutup');
-        }
-        
         $user = UserLegacy::find(session('auth_user_id'));
         
         if ($user && $user->active != 0) {
