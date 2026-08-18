@@ -16,7 +16,7 @@ class FormulirController extends Controller
 
     public function download($filename)
     {
-        $path = storage_path('app/private/dok_formulir/' . $filename);
+        $path = storage_path('app/public/dok_formulir/' . $filename);
         if (!file_exists($path)) {
             return abort(404, 'File tidak ditemukan.');
         }

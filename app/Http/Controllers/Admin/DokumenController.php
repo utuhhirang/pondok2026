@@ -22,7 +22,7 @@ class DokumenController extends Controller
 
         $file = $request->file('file');
         $filename = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('uploads/dokumen', $filename, 'local');
+        $path = $file->storeAs('uploads/dokumen', $filename, 'public');
 
         UserDokumen::create([
             'user_id' => auth()->id(), // ID petugas yang upload
@@ -38,7 +38,7 @@ class DokumenController extends Controller
     public function delete($id)
     {
         $dokumen = UserDokumen::findOrFail($id);
-        Storage::disk('local')->delete($dokumen->file_path);
+        Storage::disk('public')->delete($dokumen->file_path);
         $dokumen->delete();
 
         return redirect()->back()->with('success', 'Dokumen berhasil dihapus!');

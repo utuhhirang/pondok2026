@@ -247,7 +247,7 @@ class TransaksiController extends Controller
                 foreach ($request->file('file_pendukung') as $file) {
                     if ($file) {
                         $filename = time() . '_' . $file->getClientOriginalName();
-                        $path = $file->storeAs('uploads', $filename, 'local');
+                        $path = $file->storeAs('uploads', $filename, 'public');
 
                         UserSyarat::create([
                             'id_trx' => $transaksi->id_trx,
@@ -277,7 +277,7 @@ class TransaksiController extends Controller
             foreach ($request->file('file_pendukung') as $file) {
                 if ($file) {
                     $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('uploads', $filename, 'local');
+                    $path = $file->storeAs('uploads', $filename, 'public');
                     
                     UserSyarat::create([
                         'id_trx' => $transaksiBaru->id_trx,

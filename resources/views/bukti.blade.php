@@ -176,11 +176,11 @@
                     @if($files->count())
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             @foreach($files as $file)
-                                <a href="{{ route('dokumen.show', $file->file) }}" target="_blank" rel="noopener noreferrer" 
+                                <a href="{{ Storage::url($file->file) }}" target="_blank" rel="noopener noreferrer" 
                                    aria-label="Buka berkas {{ basename($file->file) }} di tab baru"
                                    class="block bg-white border border-gray-300 rounded-lg overflow-hidden hover:border-blue-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition group">
                                     @if (in_array(pathinfo($file->file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                        <img src="{{ route('dokumen.show', $file->file) }}" alt="Pratinjau Berkas {{ basename($file->file) }}" loading="lazy" class="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-200">
+                                        <img src="{{ Storage::url($file->file) }}" alt="Pratinjau Berkas {{ basename($file->file) }}" loading="lazy" class="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-200">
                                     @else
                                         <div class="bg-blue-50 h-24 flex items-center justify-center">
                                             <svg aria-hidden="true" class="w-10 h-10 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">

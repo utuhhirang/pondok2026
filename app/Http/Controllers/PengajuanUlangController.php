@@ -103,7 +103,7 @@ class PengajuanUlangController extends Controller
             foreach ($oldFiles as $oldFile) {
                 if (!in_array($oldFile->file, $existingFiles)) {
                     // Hapus file fisik
-                    Storage::disk('local')->delete($oldFile->file);
+                    Storage::disk('public')->delete($oldFile->file);
                     // Hapus record database
                     $oldFile->delete();
                 }
@@ -112,7 +112,7 @@ class PengajuanUlangController extends Controller
             // 2. Simpan file BARU yang di-upload
             if ($request->hasFile('file')) {
                 foreach ($request->file('file') as $file) {
-                    $path = $file->store('uploads/persyaratan', 'local');
+                    $path = $file->store('uploads/persyaratan', 'public');
                     
                     UserSyarat::create([
                         'id_trx' => $transaksi->id,
@@ -132,7 +132,7 @@ class PengajuanUlangController extends Controller
                 if (str_starts_with($selfieData, 'data:image')) {
                     $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $selfieData));
                     $selfiePath = 'uploads/selfie/' . $transaksi->id_trx . '_' . time() . '.jpg';
-                    Storage::disk('local')->put($selfiePath, $imageData);
+                    Storage::disk('public')->put($selfiePath, $imageData);
                     $transaksi->update(['selfie_path' => $selfiePath]);
                 }
                 // Jika path lama (tidak berubah), biarkan
@@ -148,7 +148,7 @@ class PengajuanUlangController extends Controller
                 if (str_starts_with($sigData, 'data:image')) {
                     $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $sigData));
                     $sigPath = 'uploads/signature/' . $transaksi->id_trx . '_' . time() . '.png';
-                    Storage::disk('local')->put($sigPath, $imageData);
+                    Storage::disk('public')->put($sigPath, $imageData);
                     $transaksi->update(['signature_path' => $sigPath]);
                 }
             }
@@ -182,7 +182,7 @@ class PengajuanUlangController extends Controller
             $file = UserSyarat::findOrFail($id);
             
             // Hapus file fisik
-            Storage::disk('local')->delete($file->file);
+            Storage::disk('public')->delete($file->file);
             
             // Hapus dari database
             $file->delete();

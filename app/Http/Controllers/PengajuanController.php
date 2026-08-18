@@ -117,11 +117,11 @@ class PengajuanController extends Controller
                     $decoded = base64_decode($data);
                     if ($decoded !== false) {
                         if (isset($transaksiLama) && $transaksiLama && $transaksiLama->selfie_path) {
-                            Storage::disk('local')->delete($transaksiLama->selfie_path);
+                            Storage::disk('public')->delete($transaksiLama->selfie_path);
                         }
                         $filename = 'selfie_' . Str::uuid() . '.' . $extension;
                         $selfiePath = 'selfie/' . $filename; 
-                        Storage::disk('local')->put($selfiePath, $decoded);
+                        Storage::disk('public')->put($selfiePath, $decoded);
                     }
                 }
             }
@@ -134,11 +134,11 @@ class PengajuanController extends Controller
                     $decoded = base64_decode($data);
                     if ($decoded !== false) {
                         if (isset($transaksiLama) && $transaksiLama && $transaksiLama->signature_path) {
-                            Storage::disk('local')->delete($transaksiLama->signature_path);
+                            Storage::disk('public')->delete($transaksiLama->signature_path);
                         }
                         $filename = 'signature_' . Str::uuid() . '.png';
                         $signaturePath = 'signature/' . $filename; 
-                        Storage::disk('local')->put($signaturePath, $decoded);
+                        Storage::disk('public')->put($signaturePath, $decoded);
                     }
                 }
             }
@@ -189,7 +189,7 @@ class PengajuanController extends Controller
 
                     foreach ($oldFiles as $oldFile) {
                         if (!in_array($oldFile->file, $existingFiles)) {
-                            Storage::disk('local')->delete($oldFile->file);
+                            Storage::disk('public')->delete($oldFile->file);
                             $oldFile->delete();
                         }
                     }
@@ -219,7 +219,7 @@ class PengajuanController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file('file') as $uploadedFile) {
                     if ($uploadedFile && $uploadedFile->isValid()) {
-                        $path = $uploadedFile->store('uploads', 'local');
+                        $path = $uploadedFile->store('uploads', 'public');
                         UserSyarat::create([
                             'id_trx' => $finalIdTrx,
                             'file'   => $path,

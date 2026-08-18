@@ -94,9 +94,9 @@ class User extends Authenticatable
     {
         if ($this->photos) {
             if (str_starts_with($this->photos, 'photos/')) {
-                return route('dokumen.show', ['path' => $this->photos]);
+                return asset('storage/' . $this->photos);
             }
-            return route('dokumen.show', ['path' => 'photos/' . $this->photos]);
+            return asset('storage/photos/' . $this->photos);
         }
         // Avatar default jika tidak ada foto
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';

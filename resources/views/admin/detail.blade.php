@@ -272,8 +272,8 @@
                                                 @foreach($dokumenSyarat as $file)
                                                     <div class="col-sm-4 mb-3">
                                                         <div class="card shadow-sm border p-1 mb-0 h-100">
-                                                            <a href="{{ route('dokumen.show', $file->file) }}" target="_blank" class="d-block text-center bg-light">
-                                                                <img src="{{ route('dokumen.show', $file->file) }}" 
+                                                            <a href="{{ Storage::url($file->file) }}" target="_blank" class="d-block text-center bg-light">
+                                                                <img src="{{ Storage::url($file->file) }}" 
                                                                     alt="Dokumen" 
                                                                     class="img-fluid"
                                                                     loading="lazy"
@@ -308,8 +308,8 @@
                                                     @endphp
                                                     <div class="col-sm-6 mb-3">
                                                         <div class="card shadow-sm border p-1 mb-0 h-100">
-                                                            <a href="{{ route('dokumen.show', $file->file) }}" target="_blank" class="d-block text-center bg-light">
-                                                                <img src="{{ route('dokumen.show', $file->file) }}" 
+                                                            <a href="{{ Storage::url($file->file) }}" target="_blank" class="d-block text-center bg-light">
+                                                                <img src="{{ Storage::url($file->file) }}" 
                                                                     alt="{{ $labelInfo }}" 
                                                                     class="img-fluid"
                                                                     loading="lazy"

@@ -139,7 +139,7 @@ class Transaksi extends Model
     public function getSelfieUrlAttribute()
     {
         return $this->selfie_path 
-            ? route('dokumen.show', ['path' => $this->selfie_path]) 
+            ? Storage::disk('public')->url($this->selfie_path) 
             : null;
     }
 
@@ -147,7 +147,7 @@ class Transaksi extends Model
     public function getSignatureUrlAttribute()
     {
         return $this->signature_path 
-            ? route('dokumen.show', ['path' => $this->signature_path]) 
+            ? Storage::disk('public')->url($this->signature_path) 
             : null;
     }
 
