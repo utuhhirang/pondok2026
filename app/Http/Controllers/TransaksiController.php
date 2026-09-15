@@ -38,8 +38,8 @@ class TransaksiController extends Controller
     public function index()
     {
         $transaksi = Transaksi::with('user', 'dokumen', 'pengambilan')
-                              ->latest()
-                              ->paginate(10);
+            ->latest()
+            ->paginate(10);
 
         return view('tracking.index', compact('transaksi'));
     }
@@ -70,19 +70,15 @@ class TransaksiController extends Controller
         // ✅ Sesuaikan logika dengan penjelasan Anda
         if ($newStatus == 2) { // Verifikasi
             $transaksi->tgl_respon = now();
-        } 
-        elseif ($newStatus == 3) { // Proses
+        } elseif ($newStatus == 3) { // Proses
             $transaksi->tgl_proses = now();
-        } 
-        elseif ($newStatus == 4) { // Selesai
+        } elseif ($newStatus == 4) { // Selesai
             $transaksi->tgl_selesai = now();
-        } 
-        elseif ($newStatus == 5 || $newStatus == 6 || $newStatus == 7) { // Ditolak, Pengajuan Ulang, Komplain
+        } elseif ($newStatus == 5 || $newStatus == 6 || $newStatus == 7) { // Ditolak, Pengajuan Ulang, Komplain
             if ($newStatus == 5 && $request->filled('pesan_penolakan')) {
                 $transaksi->pesan = $request->pesan_penolakan;
             }
-        } 
-        elseif ($newStatus == 8) { // Dibatalkan
+        } elseif ($newStatus == 8) { // Dibatalkan
             $transaksi->deleted_at = now(); // Soft delete
             if ($request->filled('pesan_batal')) {
                 $transaksi->pesan = $request->pesan_batal;
@@ -149,9 +145,8 @@ class TransaksiController extends Controller
                 'success' => true,
                 'message' => 'Penilaian berhasil disimpan.'
             ]);
-
         } catch (\Exception $e) {
-            \Log::error('Error submit rating: ' . $e->getMessage());
+            Log::error('Error submit rating: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menyimpan penilaian: ' . $e->getMessage()
@@ -229,7 +224,7 @@ class TransaksiController extends Controller
                 if ($file) {
                     $filename = time() . '_' . $file->getClientOriginalName();
                     $path = $file->storeAs('uploads', $filename, 'local');
-                    
+
                     UserSyarat::create([
                         'id_trx' => $transaksiBaru->id_trx,
                         'file'   => $path,
@@ -261,15 +256,15 @@ class TransaksiController extends Controller
 
         // Cari data transaksi (bisa dicari berdasarkan NIK pemohon, KK, atau NIK akun pembuat transaksi)
         $transaksi = Transaksi::with('dokumen')
-                          ->where('id_trx', $request->id_trx)
-                          ->where(function($query) use ($request) {
-                              $query->where('nik', $request->nik)
-                                    ->orWhere('kk', $request->nik)
-                                    ->orWhereHas('user', function($q) use ($request) {
-                                        $q->where('nik', $request->nik);
-                                    });
-                          })
-                          ->first();
+            ->where('id_trx', $request->id_trx)
+            ->where(function ($query) use ($request) {
+                $query->where('nik', $request->nik)
+                    ->orWhere('kk', $request->nik)
+                    ->orWhereHas('user', function ($q) use ($request) {
+                        $q->where('nik', $request->nik);
+                    });
+            })
+            ->first();
 
         if (!$transaksi) {
             return response()->json([
@@ -288,12 +283,12 @@ class TransaksiController extends Controller
             '1' => 'Kartu Keluarga',
             '2' => 'KTP',
             '3' => 'KIA',
-            '4' => 'Pindah Keluar',  
+            '4' => 'Pindah Keluar',
             '5' => 'Pindah Datang',
-            '6' => 'Akta Kelahiran',                    
+            '6' => 'Akta Kelahiran',
             '7' => 'Akta Kematian',
-            '8' => 'Akta Perkawinan',   
-            '9' => 'Akta Perceraian'                                    
+            '8' => 'Akta Perkawinan',
+            '9' => 'Akta Perceraian'
         ];
 
         $names = [];
