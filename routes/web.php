@@ -32,7 +32,8 @@ Route::get('/forgot-password', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
-// 2. Proses kirim WA
+// 2. Proses kirim link reset password ke Email
+Route::post('/forgot-password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
 Route::post('/forgot-password/whatsapp', [ForgotPasswordController::class, 'sendResetLink'])->name('password.wa');
 
 // 3. Halaman form password baru (saat klik link dari WA)

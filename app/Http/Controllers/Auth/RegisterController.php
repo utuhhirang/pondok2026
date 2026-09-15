@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
-use App\Helpers\WhatsAppHelper;
 use App\Models\SetupKec; // Menggunakan model untuk mengambil data kecamatan
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ActivationEmail;
 
 class RegisterController extends Controller
 {
@@ -77,11 +78,11 @@ class RegisterController extends Controller
             // Validasi data yang masuk
             $this->validator($request->all())->validate();
 
-            // Buat instance user baru
+            // Buat instance user baru (status non-aktif)
             $user = $this->create($request->all());
 
-            // Generate OTP
-            $otp = rand(100000, 999999);
+            // Generate OTP aktivasi
+            $otp = (string) rand(100000, 999999);
             $user->update([
                 'activation_code' => $otp,
                 'activation_code_expires_at' => now()->addMinutes(15),
@@ -90,30 +91,23 @@ class RegisterController extends Controller
             // Kirim event Registered
             event(new Registered($user));
 
-            // Kirim WhatsApp OTP
-            $this->sendActivationWhatsapp($user, $otp);
+            // Kirim Email Aktivasi (OTP & Direct Link)
+            $activationUrl = route('activate.link', ['nik' => $user->nik, 'otp' => $otp]);
+            try {
+                Mail::to($user->email)->send(new ActivationEmail($user, $otp, $activationUrl));
+            } catch (\Exception $mailEx) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email aktivasi: ' . $mailEx->getMessage());
+            }
 
             return redirect()->route('activate.form', ['nik' => $user->nik])->with('swal', [
                 'title' => 'Registrasi Berhasil!',
-                'text' => 'Kode OTP aktivasi akun telah dikirim ke nomor WhatsApp Anda. Silakan masukkan kode OTP untuk mengaktifkan akun.',
+                'text' => 'Kode OTP dan tautan aktivasi akun telah dikirim ke email ' . $user->email . '. Silakan periksa kotak masuk atau folder spam Anda.',
                 'icon' => 'success'
             ]);
         } catch (ValidationException $e) {
             // Tangani error validasi
             return back()->withErrors($e->validator)->withInput();
         }
-    }
-
-    /**
-     * Kirim pesan aktivasi WhatsApp dengan kode OTP & link langsung
-     */
-    protected function sendActivationWhatsapp($user, $otp)
-    {
-        $activationUrl = route('activate.link', ['nik' => $user->nik, 'otp' => $otp]);
-        
-        $message = "Halo *{$user->name}*,\n\nPendaftaran akun Anda berhasil di Pondok App.\n\nMasukkan kode OTP berikut untuk mengaktifkan akun Anda:\n*{$otp}*\n\nAtau klik tautan berikut untuk aktivasi otomatis:\n{$activationUrl}\n\n*Catatan:* Kode OTP ini berlaku selama 15 menit.";
-
-        WhatsAppHelper::sendMessage($user->phone, $message);
     }
 
     /**

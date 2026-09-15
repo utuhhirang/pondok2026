@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\WhatsAppHelper;
 use App\Models\Transaksi;
 use App\Models\UserSyarat;
 use Illuminate\Support\Facades\Http;
@@ -92,55 +91,7 @@ class TransaksiController extends Controller
 
         $transaksi->save(); // ✅ Ini akan memicu observer → simpan log
 
-        // Kirim Notifikasi WA jika status adalah Proses (3), Selesai (4), Ditolak (5), atau Dibatalkan (8)
-        if (in_array($newStatus, [3, 4, 5, 8])) {
-            $reason = null;
-            if ($newStatus == 5) {
-                $reason = $request->pesan_penolakan ?: $transaksi->pesan;
-            } elseif ($newStatus == 8) {
-                $reason = $request->pesan_batal ?: $transaksi->pesan;
-            }
-            $this->sendStatusNotification($transaksi, $newStatus, $reason);
-        }
-
         return redirect()->back()->with('success', 'Status berhasil diperbarui.');
-    }
-
-    /**
-     * Mengirim notifikasi perubahan status transaksi via WhatsApp
-     */
-    protected function sendStatusNotification($transaksi, $status, $reason = null)
-    {
-        $transaksi->load('user', 'dokumen');
-        $user = $transaksi->user;
-        
-        if (!$user || !$user->phone) {
-            return;
-        }
-
-        $namaDokumen = $transaksi->dokumen ? $transaksi->dokumen->nama : 'Dokumen';
-        $idTrx = $transaksi->id_trx;
-
-        $message = '';
-        if ($status == 3) {
-            $message = "Halo *{$transaksi->nama}*,\n\nPermohonan layanan *{$namaDokumen}* Anda dengan ID Transaksi *{$idTrx}* saat ini sedang **DIPROSES** oleh petugas.\n\nSilakan pantau secara berkala status permohonan Anda melalui aplikasi.\nStatus **DIPROSES** dilakukan sesuai jam kerja Aktif, diluar jam kerja akan dikerjakan hari selanjutnya.\n\nTerima kasih.";
-        } elseif ($status == 4) {
-            $message = "Halo *{$transaksi->nama}*,\n\nPermohonan layanan *{$namaDokumen}* Anda dengan ID Transaksi *{$idTrx}* telah **SELESAI**.\n\nDokumen Anda sudah siap diambil/diterima.\nSilakan cek menu lacak, cek berkas di aplikasi.";
-            if (!empty($reason)) {
-                $message .= "\n\n*Pesan Petugas:*\n{$reason}";
-            }
-            $message .= "\n\nTerima kasih.";
-        } elseif ($status == 5) {
-            $message = "Halo *{$transaksi->nama}*,\n\nMohon maaf, permohonan layanan *{$namaDokumen}* Anda dengan ID Transaksi *{$idTrx}* statusnya **DITOLAK**.\n\n*Alasan Penolakan:*\n{$reason}\n\nSilakan lakukan perbaikan data dan lakukan pengajuan ulang dengan nomor transaksi *{$idTrx}* melalui aplikasi.\n\nTerima kasih.";
-        } elseif ($status == 8) {
-            $message = "Halo *{$transaksi->nama}*,\n\nMohon maaf, permohonan layanan *{$namaDokumen}* Anda dengan ID Transaksi *{$idTrx}* telah **DIBATALKAN**.\n\n*Alasan Pembatalan:*\n{$reason}\n\nTerima kasih.";
-        }
-
-        if (empty($message)) {
-            return;
-        }
-
-        WhatsAppHelper::sendMessage($user->phone, $message);
     }
 
     public function konfirmasi(Request $request, $id)
