@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\WhatsAppHelper;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,16 +25,11 @@ class UserBaruController extends Controller
         try {
             switch ($action) {
                 case 'activate':
-                    $otp = \App\Helpers\generateOtp(6);
                     $user->update([
                         'active' => 1,
-                        'activation_code' => $otp,
-                        'activation_code_expires_at' => now()->addMinutes(10),
+                        'activation_code' => null,
+                        'activation_code_expires_at' => null,
                     ]);
-
-                    // ✅ Notifikasi WA akun diterima
-                    $message = "Pendaftaran akun berhasil!\nSilahkan login dan akses menu layanan untuk mengajukan permohonan.\n\n> No. Konsultasi: 0815-2220-112\n> Website: https://pondok.dukcapil.tapinkab.go.id";
-                    $this->sendWhatsapp($phone, $message);
 
                     return response()->json(['message' => 'User berhasil diaktifkan!']);
                     break;
@@ -54,11 +48,6 @@ class UserBaruController extends Controller
                     break;
 
                 case 'reject':
-                    // ✅ Notifikasi WA sebelum dihapus
-                    $message = "Pendaftaran akun ditolak!\nAlasan:\n{$reason}\n\nSilahkan lakukan pendaftaran ulang.\n\n> No. Konsultasi: 0815-2220-112\n> Website: https://pondok.dukcapil.tapinkab.go.id";
-                    $this->sendWhatsapp($phone, $message);
-
-                    // ✅ Hapus akun setelah 
                     $user->forceDelete();
 
                     return response()->json(['message' => 'Pendaftaran akun ditolak dan akun telah dihapus!']);
@@ -94,11 +83,5 @@ class UserBaruController extends Controller
         $user->save();
 
         return redirect()->back()->with('success', 'User berhasil diaktifkan.');
-    }
-
-
-    public function sendWhatsapp($phone, $message)
-    {
-        return WhatsAppHelper::sendMessage($phone, $message);
     }
 }

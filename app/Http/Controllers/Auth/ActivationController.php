@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Helpers\WhatsAppHelper;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ActivationEmail;
 
 class ActivationController extends Controller
 {
@@ -16,6 +17,18 @@ class ActivationController extends Controller
     public function showForm(Request $request)
     {
         $nik = $request->query('nik', session('activation_nik'));
+
+        if ($nik) {
+            $user = User::where('nik', $nik)->first();
+            if ($user && $user->active == 1) {
+                return redirect()->route('login')->with('swal', [
+                    'title' => 'Akun Sudah Aktif',
+                    'text' => 'Akun Anda sudah aktif sebelumnya. Silakan login.',
+                    'icon' => 'info'
+                ]);
+            }
+        }
+
         return view('auth.activate', compact('nik'));
     }
 
@@ -50,7 +63,7 @@ class ActivationController extends Controller
         if ($user->activation_code !== $request->otp || !$expiresAt || $expiresAt->isPast()) {
             return back()->withInput()->with('swal', [
                 'title' => 'Aktivasi Gagal',
-                'text' => 'Kode OTP salah atau sudah kedaluwarsa. Silakan kirim ulang OTP.',
+                'text' => 'Kode OTP salah atau sudah kedaluwarsa. Silakan kirim ulang OTP ke email Anda.',
                 'icon' => 'error'
             ]);
         }
@@ -70,7 +83,7 @@ class ActivationController extends Controller
     }
 
     /**
-     * Kirim ulang kode OTP
+     * Kirim ulang kode OTP aktivasi ke email
      */
     public function resend(Request $request)
     {
@@ -92,24 +105,29 @@ class ActivationController extends Controller
         }
 
         // Generate OTP Baru
-        $otp = rand(100000, 999999);
+        $otp = (string) rand(100000, 999999);
         $user->update([
             'activation_code' => $otp,
             'activation_code_expires_at' => now()->addMinutes(15),
         ]);
 
-        // Kirim WhatsApp
-        $this->sendActivationWhatsapp($user, $otp);
+        // Kirim Email Aktivasi
+        $activationUrl = route('activate.link', ['nik' => $user->nik, 'otp' => $otp]);
+        try {
+            Mail::to($user->email)->send(new ActivationEmail($user, $otp, $activationUrl));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal mengirim ulang email aktivasi: ' . $e->getMessage());
+        }
 
         return back()->with('swal', [
             'title' => 'OTP Terkirim!',
-            'text' => 'Kode OTP baru telah dikirimkan ke nomor WhatsApp Anda.',
+            'text' => 'Kode OTP dan tautan aktivasi baru telah dikirimkan ke email ' . $user->email . '.',
             'icon' => 'success'
         ])->with('activation_nik', $user->nik);
     }
 
     /**
-     * Aktivasi akun langsung melalui link URL WhatsApp
+     * Aktivasi akun langsung melalui link URL dari email
      */
     public function directActivate($nik, $otp)
     {
@@ -135,8 +153,8 @@ class ActivationController extends Controller
 
         if ($user->activation_code !== $otp || !$expiresAt || $expiresAt->isPast()) {
             return redirect()->route('activate.form', ['nik' => $user->nik])->with('swal', [
-                'title' => 'Link Kadaluarsa',
-                'text' => 'Link aktivasi salah atau sudah kedaluwarsa. Silakan masukkan NIK Anda dan kirim ulang OTP.',
+                'title' => 'Tautan Kedaluwarsa',
+                'text' => 'Tautan aktivasi salah atau sudah kedaluwarsa. Silakan minta kirim ulang OTP ke email Anda.',
                 'icon' => 'error'
             ]);
         }
@@ -153,17 +171,5 @@ class ActivationController extends Controller
             'text' => 'Akun Anda telah diaktifkan secara otomatis. Silakan login.',
             'icon' => 'success'
         ]);
-    }
-
-    /**
-     * Helper untuk kirim WhatsApp
-     */
-    protected function sendActivationWhatsapp($user, $otp)
-    {
-        $activationUrl = route('activate.link', ['nik' => $user->nik, 'otp' => $otp]);
-        
-        $message = "Halo *{$user->name}*,\n\nIni adalah kode OTP aktivasi baru untuk akun Anda di Pondok App.\n\nKode OTP Anda:\n*{$otp}*\n\nAtau klik tautan berikut untuk aktivasi otomatis:\n{$activationUrl}\n\n*Catatan:* Kode OTP ini berlaku selama 15 menit.";
-
-        WhatsAppHelper::sendMessage($user->phone, $message);
     }
 }

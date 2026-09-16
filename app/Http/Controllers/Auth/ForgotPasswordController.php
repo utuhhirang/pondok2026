@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use App\Helpers\WhatsAppHelper;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordEmail;
 
 class ForgotPasswordController extends Controller
 {
@@ -22,7 +23,7 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Mengirim link reset password via WhatsApp
+     * Memproses permintaan reset password dan mengirim tautan ke email
      */
     public function sendResetLink(Request $request)
     {
@@ -45,10 +46,10 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
-        if (!$user->phone) {
+        if (!$user->email) {
             return back()->with('swal', [
-                'title' => 'Nomor WA Kosong',
-                'text' => 'Nomor WhatsApp tidak ditemukan di profil Anda. Silakan hubungi admin.',
+                'title' => 'Email Tidak Ditemukan',
+                'text' => 'Akun Anda tidak memiliki email terdaftar. Silakan hubungi admin.',
                 'icon' => 'warning'
             ]);
         }
@@ -64,26 +65,33 @@ class ForgotPasswordController extends Controller
             ]
         );
 
-        // 4. Susun Link Reset
+        // 4. Susun Link Reset Password
         $resetUrl = url("/password/reset/{$token}?nik=" . $user->nik);
 
-        $message = "Halo *{$user->name}*,\n\nKami menerima permintaan reset password untuk akun Anda.\n\nKlik link di bawah ini untuk mengatur ulang password Anda:\n{$resetUrl}\n\n*Catatan:* Tautan reset password ini hanya berlaku selama 15 menit.";
-
-        $result = WhatsAppHelper::sendMessage($user->phone, $message);
-
-        if ($result['success']) {
+        // 5. Kirim Email Reset Password
+        try {
+            Mail::to($user->email)->send(new ResetPasswordEmail($user, $resetUrl));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal mengirim email reset password: ' . $e->getMessage());
             return back()->with('swal', [
-                'title' => 'Berhasil!',
-                'text' => 'Link reset password telah dikirim ke nomor WhatsApp Anda.',
-                'icon' => 'success'
-            ]);
-        } else {
-            return back()->with('swal', [
-                'title' => 'Gagal Mengirim',
-                'text' => 'Gagal mengirim pesan reset password. Silakan coba beberapa saat lagi.',
+                'title' => 'Gagal Mengirim Email',
+                'text' => 'Terjadi kendala saat mengirim email. Silakan coba lagi beberapa saat.',
                 'icon' => 'error'
             ]);
         }
+
+        // Sensor sebagian email untuk privasi pengguna (contoh: jo***@gmail.com)
+        $emailParts = explode('@', $user->email);
+        $namePart = $emailParts[0];
+        $domainPart = $emailParts[1] ?? '';
+        $maskedName = strlen($namePart) > 2 ? substr($namePart, 0, 2) . str_repeat('*', max(1, strlen($namePart) - 2)) : $namePart . '*';
+        $maskedEmail = $maskedName . '@' . $domainPart;
+
+        return back()->with('swal', [
+            'title' => 'Email Terkirim!',
+            'text' => 'Tautan untuk mengatur ulang kata sandi telah dikirim ke email ' . $maskedEmail . '. Silakan periksa kotak masuk atau spam.',
+            'icon' => 'success'
+        ]);
     }
 
     /**

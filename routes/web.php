@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TransaksiController;
@@ -32,7 +33,8 @@ Route::get('/forgot-password', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
-// 2. Proses kirim WA
+// 2. Proses kirim link reset password ke Email
+Route::post('/forgot-password/email', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
 Route::post('/forgot-password/whatsapp', [ForgotPasswordController::class, 'sendResetLink'])->name('password.wa');
 
 // 3. Halaman form password baru (saat klik link dari WA)
@@ -80,9 +82,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
     Route::put('/account', [AccountController::class, 'update'])->name('account.update');
     
-    Route::middleware(['auth'])->get('/form_pengajuan', [PengajuanController::class, 'showForm'])->name('form.pengajuan');
-
-    Route::middleware(['auth'])->get('/form_pengajuan', [PengajuanController::class, 'showForm'])->name('form.pengajuan');
+    Route::get('/form_pengajuan', [PengajuanController::class, 'showForm'])->name('form.pengajuan');
     Route::post('/pengajuan/submit', [PengajuanController::class, 'submitForm'])->name('pengajuan.submit');
     Route::get('/api/jenis-layanan/filter/{keterangan}', [PengajuanController::class, 'getJenisLayananByKeterangan']);
     Route::get('/api/pengambilan-dokumen', [PengajuanController::class, 'getPengambilanDokumen'])->name('api.pengambilan.dokumen');
@@ -183,11 +183,12 @@ Route::get('/dokumen/{path}', function ($path) {
     
     if (!$isPublicForm) {
         // Wajib login untuk selain formulir publik
-        if (!auth()->check()) {
+        if (!Auth::check()) {
             abort(403, 'Silakan login terlebih dahulu untuk mengakses file ini.');
         }
         
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $userId = $user->id;
         $roleId = $user->role_id;
         $hasAccess = false;

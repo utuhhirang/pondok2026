@@ -36,7 +36,7 @@ class LoginController extends Controller
             if ($user->active == 0) {
                 return redirect()->route('activate.form', ['nik' => $user->nik])->with('swal', [
                     'title' => 'Akun Belum Aktif',
-                    'text' => 'Akun Anda belum aktif. Silakan masukkan kode OTP yang dikirimkan ke WhatsApp Anda.',
+                    'text' => 'Akun Anda belum aktif. Silakan periksa email (' . $user->email . ') Anda untuk kode OTP atau tautan aktivasi akun.',
                     'icon' => 'warning'
                 ]);
             }

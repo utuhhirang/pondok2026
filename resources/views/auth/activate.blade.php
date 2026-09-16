@@ -9,7 +9,7 @@
                 <img src="{{ asset('icon/login5.webp') }}" alt="Ikon Aktivasi Akun" class="w-full h-full object-contain">
             </div>
             <h2 class="text-3xl font-bold text-gray-800 text-center mb-2">Aktivasi Akun</h2>
-            <p class="text-sm text-gray-700">Masukkan NIK dan kode OTP 6-digit yang dikirimkan ke nomor WhatsApp Anda.</p>
+            <p class="text-sm text-gray-700">Masukkan NIK dan kode OTP 6-digit yang dikirimkan ke alamat email Anda.</p>
         </div>
 
         {{-- Form Aktivasi --}}
@@ -29,7 +29,7 @@
             </div>
 
             <div>
-                <label for="otp" class="block text-gray-700 text-sm font-bold mb-2">Kode OTP WhatsApp</label>
+                <label for="otp" class="block text-gray-700 text-sm font-bold mb-2">Kode OTP Email</label>
                 <input id="otp" type="text" name="otp" required 
                     oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)" 
                     placeholder="Masukkan 6 digit OTP" 
